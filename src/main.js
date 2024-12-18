@@ -5,6 +5,8 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
+// 引入 normalize.css
+import './assets/normalize.css';
 
 const app = createApp(App)
 
