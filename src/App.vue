@@ -1,6 +1,13 @@
 <script setup>
 import { RouterLink, RouterView } from "vue-router";
 import HelloWorld from "./components/HelloWorld.vue";
+import { onMounted } from "vue";
+import { aaa } from "@/api/app.js";
+onMounted(() => {
+  aaa().then((res) => {
+    console.log(res);
+  });
+});
 </script>
 
 <template>

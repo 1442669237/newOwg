@@ -19,7 +19,10 @@ npm install
 ### Compile and Hot-Reload for Development
 
 ```sh
-npm run dev
+npm run serve 运行开发环境
+npm run build 开发环境打包
+npm run serve:pro 运行生产环境
+npm run build:pro 生产环境打包
 ```
 
 ### Compile and Minify for Production
