@@ -25,8 +25,3 @@ npm run serve:pro 运行生产环境
 npm run build:pro 生产环境打包
 ```
 
-### Compile and Minify for Production
-
-```sh
-npm run build
-```

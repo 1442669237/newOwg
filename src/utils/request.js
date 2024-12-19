@@ -1,15 +1,15 @@
 import axios from 'axios';
-// import { ElMessageBox, ElMessage } from 'element-plus'
+import { ERROR_CODES } from '@/constants/errorCode'
+import { useAuthStore } from '@/stores/auth'
+
 const service = axios.create({
-    baseURL: import.meta.env.VITE_APP_URL, // 基础URL，可以在.env文件中配置
-    timeout: 5000 // 请求超时时间
+    baseURL: import.meta.env.VITE_APP_URL,
+    timeout: 5000
 });
-import { showNotify, showToast } from 'vant'
-console.log(showNotify)
+
 // 请求拦截器
 service.interceptors.request.use(
     config => {
-        // 在发送请求之前做些什么，例如添加token
         const token = localStorage.getItem('token');
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
@@ -17,8 +17,10 @@ service.interceptors.request.use(
         return config;
     },
     error => {
-        // 对请求错误做些什么
-        console.error(error); // for debug
+        ElMessage({
+            message: '请求配置错误',
+            type: 'error'
+        });
         return Promise.reject(error);
     }
 );
@@ -26,38 +28,38 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
     response => {
-        const res = response.data;
-        // 假设你的服务器返回的数据结构为{ code, message, data }
-        if (res.code === 20000) {
-            return res.data;
-        } else if (res.code === 50008 || res.code === 50012 || res.code === 50014) {
-            // 登录状态失效等，需要重新登录
-            ElMessageBox.confirm('You have been logged out, you can cancel to stay on this page or log in again.', 'Confirm logout', {
-                confirmButtonText: 'Re-Login',
-                cancelButtonText: 'Cancel',
-                type: 'warning'
-            }).then(() => {
-                localStorage.removeItem('token'); // 移除token
-                location.reload(); // 重新加载页面
-            }).catch(() => {
-                console.log('cancel');
-            });
-            return Promise.reject(new Error('未登录，请登录'));
-        } else {
-            Message({
-                message: res.message || 'Error',
-                type: 'error',
-                duration: 5 * 1000
-            });
-            return Promise.reject(new Error(res.message || 'Error'));
+        const { code, message, data } = response.data;
+
+        // 成功请求
+        if (code === ERROR_CODES.SUCCESS) {
+            return data;
         }
+
+        // token 相关错误
+        if ([ERROR_CODES.TOKEN_EXPIRED,
+        ERROR_CODES.INVALID_TOKEN,
+        ERROR_CODES.OTHER_CLIENT_LOGIN].includes(code)) {
+            const authStore = useAuthStore();
+            authStore.handleTokenExpired();
+            return Promise.reject(new Error('登录已过期'));
+        }
+
+        // 其他业务错误
+        ElMessage({
+            message: message || '请求失败',
+            type: 'error',
+            duration: 3000
+        });
+        return Promise.reject(new Error(message || '请求失败'));
     },
     error => {
-        showNotify({ type: 'success', message: '通知内容' });
-
-        showToast({
-            message: 'This message will contain a incomprehensibilities long word.'
-        })
+        // 网络错误等
+        const message = error.response?.data?.message || error.message || '网络错误';
+        ElMessage({
+            message,
+            type: 'error',
+            duration: 3000
+        });
         return Promise.reject(error);
     }
 );

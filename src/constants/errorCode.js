@@ -1,0 +1,7 @@
+export const ERROR_CODES = {
+    SUCCESS: 20000,
+    TOKEN_EXPIRED: 50008,
+    INVALID_TOKEN: 50012,
+    OTHER_CLIENT_LOGIN: 50014,
+    // ... 其他错误码
+} 
